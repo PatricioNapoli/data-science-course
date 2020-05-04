@@ -5,6 +5,9 @@ from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import minmax_scale
 
 import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import adfuller
+
+from pmdarima.arima import auto_arima
 
 
 def arima_train(actual, P, D, Q):
@@ -37,7 +40,7 @@ def forecast(actual_data, train_percentage):
             history.append(actual)
             continue
 
-        prediction, model = arima_train(history, 2, 1, 0)
+        prediction, model = arima_train(history, 0, 1, 2)
         predictions.append([time, prediction[0]])
         history.append(actual)
         actuals.append([time, actual])
@@ -55,6 +58,43 @@ def forecast(actual_data, train_percentage):
     print('MAE vs observed: %.5f%%' % error)
 
     return pred, pd.DataFrame(data=train, columns=['time', 'value']), actuals
+
+
+def get_stationarity(df, coin):
+    df['time'] = pd.to_datetime(df['time'], unit='s')
+    df = df.set_index(keys=["time"])
+
+    # Rolling Statistics
+    rolling_mean = df.rolling(window=30).mean()
+    rolling_std = df.rolling(window=30).std()
+
+    plt.plot(df, color='blue', label='Original')
+    plt.plot(rolling_mean, color='red', label='Rolling Mean')
+    plt.plot(rolling_std, color='black', label='Rolling Std')
+
+    plt.legend(loc='best')
+    plt.title(f"{coin} Rolling Mean & Rolling Standard Deviation")
+    plt.show(block=False)
+
+    # Dickey-Fuller Test
+    result = adfuller(df['value'])
+    print('ADF Statistic: {}'.format(result[0]))
+    print('p-value: {}'.format(result[1]))
+    print('Critical Values:')
+    for key, value in result[4].items():
+        print('\t{}: {}'.format(key, value))
+
+
+def get_auto_arima(df):
+    stepwise_model = auto_arima(df["value"], start_p=1, start_q=1,
+                                max_p=3, max_q=3, m=12,
+                                start_P=0, seasonal=True,
+                                d=1, D=1, trace=True,
+                                error_action='ignore',
+                                suppress_warnings=True,
+                                stepwise=True)
+
+    print(stepwise_model.aic())
 
 
 def main():
@@ -75,10 +115,13 @@ def main():
         d = pd.read_csv(f"{coin}.csv")
 
         print("Sample data: ")
-        print(d.head().to_string(index=False))
+        print(d.head().to_string())
         print()
 
         df = d[0:hour_count].copy()
+
+        #get_auto_arima(df)
+        get_stationarity(df, coin)
 
         predictions, training, actual = forecast(df, train_percentage)
 
@@ -100,6 +143,8 @@ def main():
 
         fig = ax.get_figure()
         fig.savefig(f"{coin}.pdf")
+
+        plt.cla()
 
         print()
 
