@@ -10,8 +10,11 @@ import matplotlib.pyplot as plt
 def arima_train(actual, P, D, Q):
     model = ARIMA(actual, order=(P, D, Q))
     model_fit = model.fit(disp=0)
-    prediction = model_fit.forecast()[0]
-    return prediction
+
+    # Explicit 1 step forecasting
+    prediction = model_fit.forecast(steps=1)[0]
+
+    return prediction, model_fit
 
 
 def forecast(actual_data, train_percentage):
@@ -23,6 +26,8 @@ def forecast(actual_data, train_percentage):
     actuals = list()
     history = [x for x in train['value']]
 
+    model = {}
+
     for timepoint in range(len(test)):
         actual = test['value'].iloc[timepoint]
         time = test['time'].iloc[timepoint]
@@ -32,10 +37,12 @@ def forecast(actual_data, train_percentage):
             history.append(actual)
             continue
 
-        prediction = arima_train(history, 2, 1, 0)[0]
-        predictions.append([time, prediction])
+        prediction, model = arima_train(history, 2, 1, 0)
+        predictions.append([time, prediction[0]])
         history.append(actual)
         actuals.append([time, actual])
+
+    print(model.summary())
 
     # Print MSE
     actuals = pd.DataFrame(data=actuals, columns=['time', 'value'])
@@ -45,7 +52,7 @@ def forecast(actual_data, train_percentage):
     pred_scaled = minmax_scale(pred['value'], feature_range=(0, 1))
 
     error = mean_squared_error(actuals_scaled, pred_scaled) * 100
-    print('Error: %.5f%%' % error)
+    print('MAE vs observed: %.5f%%' % error)
 
     return pred, pd.DataFrame(data=train, columns=['time', 'value']), actuals
 
@@ -61,6 +68,8 @@ def main():
     print()
 
     for coin in coins:
+        print()
+        print("=============================================")
         print(f"Predicting {coin}.")
 
         d = pd.read_csv(f"{coin}.csv")
@@ -87,10 +96,10 @@ def main():
         plt.title('Forecast vs Actuals')
         plt.legend(loc='upper left', fontsize=8)
 
-        print("Done, saving chart.")
+        print(f"Done, saving chart to {coin}.pdf.")
 
         fig = ax.get_figure()
-        fig.savefig(f"./{coin}.pdf")
+        fig.savefig(f"{coin}.pdf")
 
         print()
 
