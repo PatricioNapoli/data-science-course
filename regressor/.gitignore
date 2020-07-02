@@ -1,3 +1,4 @@
 /.idea
-plot
-plot.svg
+/plots/*.png
+/plots/*.svg
+/plots/plot
