@@ -9,6 +9,12 @@ import matplotlib.pyplot as plt
 
 
 def run_glm(X_train, y_train, X_test, y_test, feature_cols):
+    print()
+    print()
+    print("========================================")
+    print("=================GLM====================")
+    print("========================================")
+
     df = pandas.concat([X_train, y_train], axis=1)
     formula = f'target ~ {"+".join(feature_cols)}'
     model = smf.glm(formula=formula, data=df, family=sm.families.Gaussian())

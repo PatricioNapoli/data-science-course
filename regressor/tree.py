@@ -7,7 +7,6 @@ from sklearn.model_selection import cross_val_score
 
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn
 
 from dtreeviz.trees import dtreeviz
 
@@ -47,6 +46,12 @@ def plot_cross_validation_on_trees(depths, cv_scores_mean, cv_scores_std, accura
 
 
 def run_cross_tree(X_train, y_train):
+    print()
+    print()
+    print("========================================")
+    print("=================TREE===================")
+    print("========================================")
+
     sm_tree_depths = range(1, 20)
     sm_cv_scores_mean, sm_cv_scores_std, sm_accuracy_scores = run_cross_validation_on_trees(X_train, y_train,
                                                                                             sm_tree_depths)

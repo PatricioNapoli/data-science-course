@@ -2,12 +2,20 @@ from math import sqrt
 
 import pandas
 from sklearn.metrics import mean_squared_error
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 import matplotlib.pyplot as plt
 
 
 def run_svr(X_train, y_train, X_test, y_test, feature_cols):
-    regr = SVR(C=1.0, epsilon=0.2)
+    print()
+    print()
+    print("========================================")
+    print("=================SVR====================")
+    print("========================================")
+
+    regr = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
     regr.fit(X_train, y_train)
 
     y_predictions = regr.predict(X_test)

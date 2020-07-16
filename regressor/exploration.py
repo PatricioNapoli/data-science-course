@@ -3,6 +3,12 @@ import matplotlib.pyplot as plt
 
 
 def explore(df):
+    print()
+    print()
+    print("========================================")
+    print("================EXPLORE=================")
+    print("========================================")
+
     df.info()
     print(df.describe(include="all").transpose())
 
